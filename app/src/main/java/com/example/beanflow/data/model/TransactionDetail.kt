@@ -1,8 +1,9 @@
-package com.example.beanflow.data
+package com.example.beanflow.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -12,10 +13,10 @@ import androidx.room.PrimaryKey
             entity = Transaction::class,
             parentColumns = ["id"],
             childColumns = ["transaction_id"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.Companion.CASCADE
         )
     ],
-    indices = [androidx.room.Index(value = ["transaction_id"])] // <--- TAMBAHAN UNTUK HILANGKAN WARNING
+    indices = [Index(value = ["transaction_id"])] // <--- TAMBAHAN UNTUK HILANGKAN WARNING
 )
 data class TransactionDetail(
     @PrimaryKey(autoGenerate = true)
