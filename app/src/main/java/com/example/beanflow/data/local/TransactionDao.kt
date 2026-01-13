@@ -1,8 +1,10 @@
-package com.example.beanflow.data
+package com.example.beanflow.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.beanflow.data.model.Transaction
+import com.example.beanflow.data.model.TransactionDetail
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -26,6 +28,4 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE transaction_date BETWEEN :start AND :end ORDER BY transaction_date DESC")
     suspend fun getTransactionsByDate(start: Long, end: Long): List<Transaction>
 
-    @Query("SELECT product_name as name, SUM(quantity) as totalQty FROM transaction_details GROUP BY product_name ORDER BY totalQty DESC LIMIT 5")
-    fun getTopSellingProducts(): kotlinx.coroutines.flow.Flow<List<TopProduct>>
 }
