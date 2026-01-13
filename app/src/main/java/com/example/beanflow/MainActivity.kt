@@ -6,163 +6,113 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.beanflow.data.AppDatabase
+import com.example.beanflow.data.local.AppDatabase
+import com.example.beanflow.ui.screens.AdminScreen
+import com.example.beanflow.ui.screens.CashierScreen
+import com.example.beanflow.ui.screens.HistoryScreen
+import com.example.beanflow.ui.screens.LoginScreen
+import com.example.beanflow.ui.screens.SettingsScreen
+import com.example.beanflow.ui.screens.SplashScreen
+import com.example.beanflow.ui.screens.UserManagementScreen
+import com.example.beanflow.ui.viewmodel.AdminViewModel
+import com.example.beanflow.ui.viewmodel.CashierViewModel
+import com.example.beanflow.ui.viewmodel.HistoryViewModel
+import com.example.beanflow.ui.viewmodel.LoginViewModel
+import com.example.beanflow.ui.viewmodel.SettingsViewModel
+import com.example.beanflow.ui.viewmodel.UserViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // --- 1. DATABASE SETUP (WAJIB PALING ATAS) ---
+        // Setup Database & ViewModel
         val database = AppDatabase.getDatabase(this)
-
-        // --- 2. VIEWMODEL SETUP ---
-        val historyViewModel = HistoryViewModel(database.transactionDao())
-        val loginViewModel = LoginViewModel(database.userDao())
-        val adminViewModel = AdminViewModel(database.productDao(), database.transactionDao())
+        val historyViewModel = HistoryViewModel()
+        val loginViewModel = LoginViewModel()
+        val adminViewModel = AdminViewModel()
         val cashierViewModel = CashierViewModel(database.productDao(), database.transactionDao())
-        val settingsViewModel = SettingsViewModel(database.userDao())
+        val settingsViewModel = SettingsViewModel()
+        val userViewModel = UserViewModel()
 
-        // Setup UserViewModel untuk fitur kelola kasir
-        val userViewModel = UserViewModel(database.userDao())
-
-        // Seed Admin Default (jika belum ada)
         loginViewModel.initDefaultAdmin()
 
         setContent {
             MaterialTheme {
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
-                    if (loginViewModel.isLoggedIn) {
-                        var activeScreen by remember { mutableStateOf("Dashboard") }
+                    // STATE: Apakah Splash Screen sedang tampil?
+                    var showSplash by remember { mutableStateOf(true) }
 
-                        // --- NAVIGASI ---
-                        when (activeScreen) {
-                            "History" -> {
-                                HistoryScreen(historyViewModel) { activeScreen = "Dashboard" }
-                            }
-                            "UserManagement" -> {
-                                UserManagementScreen(userViewModel) { activeScreen = "Dashboard" }
-                            }
-                            "Settings" -> { // LAYAR BARU
-                                SettingsScreen(
+                    if (showSplash) {
+                        // 1. TAMPILKAN SPLASH SCREEN DULU
+                        SplashScreen(onTimeout = {
+                            showSplash = false // Setelah 3 detik, matikan splash screen
+                        })
+                    } else {
+                        // 2. MASUK KE LOGIKA UTAMA (Login / Dashboard)
+                        if (loginViewModel.isLoggedIn) {
+                            var activeScreen by remember { mutableStateOf("Dashboard") }
+
+                            when (activeScreen) {
+                                "History" -> HistoryScreen(historyViewModel) { activeScreen = "Dashboard" }
+                                "UserManagement" -> UserManagementScreen(userViewModel) { activeScreen = "Dashboard" }
+                                "Settings" -> SettingsScreen(
                                     viewModel = settingsViewModel,
-                                    userId = 1, // Di aplikasi real, ambil ID dari LoginViewModel
-                                    username = loginViewModel.usernameInput, // Ambil username yg sedang login
+                                    userId = 1,
+                                    username = loginViewModel.usernameInput,
                                     onBack = { activeScreen = "Dashboard" }
                                 )
-                            }
-                            else -> {
-                                // DASHBOARD
-                                if (loginViewModel.userRole == "Admin") {
-                                    Column {
-                                        // --- TOMBOL PENGATURAN (BARU) ---
-                                        Button(
-                                            onClick = { activeScreen = "Settings" },
-                                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).padding(top = 8.dp),
-                                            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
-                                        ) {
-                                            Text("PENGATURAN AKUN ")
-                                        }
-                                        // --------------------------------
-
-                                        Row(Modifier.padding(horizontal = 8.dp)) {
-                                            // Tombol History
-                                            Button(
-                                                onClick = { activeScreen = "History" },
-                                                modifier = Modifier.weight(1f).padding(end = 4.dp),
-                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
-                                            ) { Text("RIWAYAT") }
-
-                                            // Tombol Kelola Kasir
-                                            Button(
-                                                onClick = { activeScreen = "UserManagement" },
-                                                modifier = Modifier.weight(1f).padding(start = 4.dp),
-                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF009688))
-                                            ) { Text("KASIR") }
-                                        }
-
-                                        AdminScreen(
-                                            viewModel = adminViewModel,
-                                            onLogout = { logout(loginViewModel) }
-                                        )
-                                    }
-                                } else {
-                                    // Layar Kasir (Tetap sama)
+                                // UPDATE: Kasus Baru untuk Admin masuk ke Mode Kasir
+                                "CashierModeAdmin" -> {
                                     CashierScreen(
                                         viewModel = cashierViewModel,
                                         userId = 1,
-                                        onLogout = { logout(loginViewModel) }
+                                        isAdmin = true, // <--- ADMIN BOLEH EDIT/HAPUS
+                                        onLogout = { activeScreen = "Dashboard" } // Kalau keluar, balik ke Dashboard Admin
                                     )
                                 }
+                                else -> {
+                                    // DASHBOARD UTAMA
+                                    if (loginViewModel.userRole == "Admin") {
+                                        // PERBAIKAN DI SINI:
+                                        // 1. Hapus semua tombol manual (Button) yang menumpuk.
+                                        // 2. Panggil AdminScreen dengan parameter 'onNavigate'.
+
+                                        AdminScreen(
+                                            viewModel = adminViewModel,
+                                            onNavigate = { destination ->
+                                                activeScreen = destination // <--- Ini menyambungkan tombol menu ke navigasi
+                                            },
+                                            onLogout = { logout(loginViewModel) }
+                                        )
+
+                                    } else {
+                                        // LAYAR KASIR BIASA (KARYAWAN)
+                                        CashierScreen(
+                                            viewModel = cashierViewModel,
+                                            userId = 1,
+                                            isAdmin = false, // <--- KARYAWAN TIDAK BOLEH EDIT
+                                            onLogout = { logout(loginViewModel) }
+                                        )
+                                    }
+                                }
                             }
+                        } else {
+                            // TAMPILKAN LOGIN SCREEN
+                            LoginScreen(loginViewModel) {}
                         }
-                    } else {
-                        LoginScreen(loginViewModel)
                     }
                 }
             }
         }
     }
 
-    // Fungsi Helper Logout (Membersihkan state)
     private fun logout(viewModel: LoginViewModel) {
         viewModel.isLoggedIn = false
         viewModel.loginStatus = ""
         viewModel.usernameInput = ""
         viewModel.passwordInput = ""
-    }
-}
-
-// --- UI LOGIN ---
-@Composable
-fun LoginScreen(viewModel: LoginViewModel) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("BeanFlow Cashier", fontSize = 32.sp, style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = viewModel.usernameInput,
-            onValueChange = { viewModel.usernameInput = it },
-            label = { Text("Username") },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = viewModel.passwordInput,
-            onValueChange = { viewModel.passwordInput = it },
-            label = { Text("Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { viewModel.login() },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
-            Text("LOGIN")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (viewModel.loginStatus.isNotEmpty()) {
-            Text(viewModel.loginStatus, color = MaterialTheme.colorScheme.primary)
-        }
     }
 }
