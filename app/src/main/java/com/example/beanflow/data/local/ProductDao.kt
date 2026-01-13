@@ -1,15 +1,16 @@
-package com.example.beanflow.data
+package com.example.beanflow.data.local
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.beanflow.data.model.Product
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProductDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
     suspend fun insertProduct(product: Product)
 
     @Update
