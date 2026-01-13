@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1028326181520",
+    "project_id": "beanflow-ad32f",
+    "storage_bucket": "beanflow-ad32f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1028326181520:android:2d3dab92f306dc9b7b2615",
+        "android_client_info": {
+          "package_name": "com.example.beanflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCi-EnbvvLNL8JT69l6Q2dhigfqpQ2Gt5Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
