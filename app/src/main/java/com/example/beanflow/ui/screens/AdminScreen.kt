@@ -112,7 +112,7 @@ fun AdminScreen(
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    MenuActionCard("Buka Kasir", "Mode Jualan", Icons.Default.ShoppingCart, AdminCoffeeDark, Modifier.weight(1f)) { onNavigate("CashierModeAdmin") }
+                    MenuActionCard("Buka Kasir", "Mode Admin", Icons.Default.ShoppingCart, AdminCoffeeDark, Modifier.weight(1f)) { onNavigate("CashierModeAdmin") }
                     MenuActionCard("Kelola Staf", "Data User", Icons.Default.Person, AdminCoffeeMedium, Modifier.weight(1f)) { onNavigate("UserManagement") }
                 }
 
