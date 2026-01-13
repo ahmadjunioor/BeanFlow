@@ -1,6 +1,4 @@
-package com.example.beanflow
-
-import com.example.beanflow.data.Product
+package com.example.beanflow.data.model
 
 // Helper class untuk menampung item di keranjang
 data class CartItem(
