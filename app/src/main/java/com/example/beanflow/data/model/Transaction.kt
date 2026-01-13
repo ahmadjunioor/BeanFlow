@@ -1,4 +1,4 @@
-package com.example.beanflow.data
+package com.example.beanflow.data.model
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
