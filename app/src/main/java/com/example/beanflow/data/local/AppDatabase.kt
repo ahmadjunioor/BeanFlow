@@ -4,9 +4,6 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.beanflow.data.local.ProductDao
-import com.example.beanflow.data.local.TransactionDao
-import com.example.beanflow.data.local.UserDao
 import com.example.beanflow.data.model.Product
 import com.example.beanflow.data.model.Transaction
 import com.example.beanflow.data.model.TransactionDetail
